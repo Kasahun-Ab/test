@@ -1,65 +1,69 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:testapp/features/cubit/auth_cubit.dart';
-import 'package:testapp/features/cubit/phoneauth_cubit.dart';
-import 'package:testapp/features/repostories/auth_repostories.dart';
-import 'package:testapp/features/repostories/phoneauth_repostories.dart';
-import 'package:testapp/features/view/homePage.dart';
-import 'package:testapp/features/view/loginPage.dart';
-import 'package:testapp/features/view/mobileauthpage.dart';
-import 'package:testapp/features/view/otpPage.dart';
-import 'package:testapp/features/view/registerPage.dart';
+import 'package:testapp/config/routing/routes.dart';
+// import 'package:testapp/repositories/phone_auth_repostories.dart';
 
-import 'app/appTheme.dart';
-import 'firebase_options.dart';
+import 'config/theme/appTheme.dart';
+import 'cubit/auth_cubit.dart';
+import 'cubit/index.dart';
+import 'repositories/auth_repostories.dart';
+import 'screens/home_page/home_page.dart';
+import 'screens/login_page/login_page.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp();
 
   runApp(ScreenUtilInit(
       designSize: const Size(390, 844),
       builder: (context, child) {
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: customTheme(),
-          initialRoute: '/', 
-          routes: {
-            '/login': (context) => BlocProvider(
-                  create: (_) => AuthCubit(AuthRepositoty()),
-                  child: const LoginPage(),
-                ),
-            '/register': (context) => BlocProvider(
-                  create: (_) => AuthCubit(AuthRepositoty()),
-                  child: const RegisterPage(),
-                ),
-            '/home': (context) => BlocProvider(
-                  create: (_) => AuthCubit(AuthRepositoty()),
-                  child: HomePage(),
-                ),
-            '/mobile': (context) => BlocProvider(
-                  create: (_) => PhoneAuthCubit(FirebasePhoneAuthRepository()),
-                  child: const MobileAuthPage(),
-                ),
-            '/otppage': (context) => const OtpPage()
-          },
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (_) => AuthCubit(AuthRepositoty()),
+              child: const LoginPage(),
+            ),
+            // BlocProvider(
+            //   create: (_) => AuthCubit(AuthRepositoty()),
+            //   child: const RegisterPage(),
+            // ),
+            BlocProvider(
+              create: (_) => AuthCubit(AuthRepositoty()),
+              child: const HomePage(),
+            ),
 
-          home: SplashScreen(),
+            BlocProvider(
+              create: (_) => FormCubit(),
+            ),
+            // BlocProvider(
+            //   create: (_) => PhoneAuthCubit(FirebasePhoneAuthRepository()),
+            //   child: const MobileAuthPage(),
+            // ),
+          ],
+          child: MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: customTheme(),
+            initialRoute: '/',
+            onGenerateRoute: AppRoutes.generateRoute,
+            home: const SplashScreen(),
+          ),
         );
       }));
 }
 
-
-// ignore: use_key_in_widget_constructors
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
   @override
+
   // ignore: library_private_types_in_public_api
   _SplashScreenState createState() => _SplashScreenState();
 }
@@ -73,7 +77,9 @@ class _SplashScreenState extends State<SplashScreen> {
       Future.delayed(const Duration(seconds: 3), () {
         Navigator.pushReplacementNamed(context, '/home');
       });
-    }
+    } 
+    
+    
     else {
       Future.delayed(const Duration(seconds: 3), () {
         Navigator.pushReplacementNamed(context, '/login');
